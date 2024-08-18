@@ -1,14 +1,32 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import Table from './Table';
+import axios from 'axios';
+import InputMask from 'react-input-mask';
 
 const SearchForm = ({ onBackClick }) => {
-  const { register, handleSubmit, reset, formState: { errors } } = useForm();
+  const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm();
   
+  // Estado para armazenar os dados da tabela
   const [tableData, setTableData] = useState([]);
 
-  const onSubmit = data => {
+  // Função para buscar o endereço pelo CEP
+  const fetchAddress = async (cep) => {
+    try {
+      const response = await axios.get(`https://viacep.com.br/ws/${cep}/json/`);
+      const { logradouro, bairro, localidade, uf } = response.data;
+      // Atualiza os campos do formulário com os dados da API
+      setValue('address', logradouro);
+      setValue('neighborhood', bairro);
+      setValue('city', localidade);
+      setValue('state', uf);
+    } catch (error) {
+      console.error('Erro ao buscar o endereço:', error);
+    }
+  };
 
+  const onSubmit = data => {
+    
     setTableData(prevData => [
       ...prevData,
       {
@@ -23,11 +41,22 @@ const SearchForm = ({ onBackClick }) => {
     reset();
   };
 
+
+  const handleCepChange = (e) => {
+    const cep = e.target.value;
+
+    const cepFormatted = cep.replace(/\D/g, '');
+
+     if (cepFormatted.length === 8) {
+      fetchAddress(cepFormatted);
+    }
+  };
+
   return (
     <div className="flex flex-col items-center justify-center py-4">
       <form onSubmit={handleSubmit(onSubmit)} className="bg-white text-black p-6 rounded-lg shadow-lg mx-auto max-w-4xl">
         <div className="flex flex-wrap mx-2 mt-28 lg:mt-0 md:mt-0">
-
+          {/* Campos do formulário */}
           <div className="w-full md:w-1/2 px-2 mb-4">
             <label className="block text-sm font-bold mb-2" htmlFor="name">
               Nome:
@@ -73,10 +102,10 @@ const SearchForm = ({ onBackClick }) => {
             <label className="block text-sm font-bold mb-2" htmlFor="phone">
               Celular:
             </label>
-            <input
+            <InputMask
               className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
               id="phone"
-              type="tel"
+              mask="(99)99999-9999"
               placeholder="Digite seu celular"
               {...register('phone', { required: 'Celular é obrigatório' })}
             />
@@ -87,12 +116,13 @@ const SearchForm = ({ onBackClick }) => {
             <label className="block text-sm font-bold mb-2" htmlFor="cep">
               CEP:
             </label>
-            <input
+            <InputMask
               className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
               id="cep"
-              type="text"
+              mask="99999-999"
               placeholder="Digite o CEP"
               {...register('cep', { required: 'CEP é obrigatório' })}
+              onChange={handleCepChange}
             />
             {errors.cep && <p className="text-red-500 text-xs italic">{errors.cep.message}</p>}
           </div>
@@ -168,23 +198,24 @@ const SearchForm = ({ onBackClick }) => {
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-4 mt-4 justify-start">
-          <button
-            type="submit"
-            className="bg-teal-500 text-white font-bold py-2 px-4 rounded-full"
-          >
-            Enviar
-          </button>
+        <div className="flex flex-wrap justify-end mt-4">
           <button
             type="button"
             onClick={onBackClick}
-            className="bg-gray-500 text-white font-bold py-2 px-4 rounded-full"
+            className="bg-gray-500 text-white px-4 py-2 rounded-lg mr-2"
           >
             Voltar
+          </button>
+          <button
+            type="submit"
+            className="bg-blue-500 text-white px-4 py-2 rounded-lg"
+          >
+            Adicionar
           </button>
         </div>
       </form>
 
+      {/* Tabela para exibir os dados */}
       <Table data={tableData} />
     </div>
   );
