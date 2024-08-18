@@ -10,6 +10,7 @@ const Welcome = ({ onClick }) => {
          className="bg-teal-500 text-white font-bold py-3 px-6 rounded-full">
         Buscar CEP
         </button>
+        
     </div>
   );
 };

@@ -16,7 +16,7 @@ function App() {
   };
   
   return (
-    <div className="flex flex-col justify-center items-center h-screen space-y-8 text-white">
+    <div className="flex flex-col justify-center items-center space-y-8 text-white">
         {!showForm ? (
           <Welcome onClick={handleButtonClick} />
          ) : (
